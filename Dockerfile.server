@@ -1,0 +1,3 @@
+FROM alpine:latest
+COPY src .
+CMD ["./src", "server", "--port", "5005"]

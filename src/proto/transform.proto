@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package proxy-reencyption.proto;
+
+message PublicKey {
+  bytes x = 1;
+  bytes y = 2;
+}
+
+
+message TransformObject {
+  PublicKey ephemeral_public_key = 1;
+  bytes encrypted_message = 2;
+  bytes auth_hash = 3;
+  TransformBlock transform_blocks = 4;
+  bytes public_signing_key= 5;
+  bytes ed25519_signature = 6;
+}
+
+message TransformBlock {
+  PublicKey public_key = 1;
+  bytes encrypted_temp_key = 2;
+  PublicKey random_transform_public_key = 3;
+  bytes encrypted_random_transform_temp_key = 4;
+}
+
+message EncryptedMessage {
+  bytes encrypted_message = 1;
+  PublicKey ephemeral_public_key = 2;
+  bytes ed25519_signature = 3;
+  bytes auth_hash = 4;
+  bytes public_signing_key = 5;
+}
