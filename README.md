@@ -1,5 +1,9 @@
 # proxy-reencyption enclave app
 
+This app uses AWS Nitro Enclaves to create an environment where a client can securely request the creation of cryptographic keys inside an enclave.
+
+It enables content reencryption using Rust's recrypt library.
+
 ## Run server
 ```bash
 cargo run -- server --port 5005
