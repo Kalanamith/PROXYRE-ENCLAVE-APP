@@ -1,23 +1,24 @@
-use clap::{App, AppSettings, Arg, SubCommand};
+use clap::{Command, Arg, ArgMatches};
 
 use proxy_reencyption_enclave_app::command_parser::{ClientArgs, ServerArgs};
 use proxy_reencyption_enclave_app::create_app;
 use proxy_reencyption_enclave_app::utils::ExitGracefully;
 use proxy_reencyption_enclave_app::{client, server};
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let app = create_app!();
     let args = app.get_matches();
 
     match args.subcommand() {
-        ("server", Some(args)) => {
-            let server_args = ServerArgs::new_with(args).ok_or_exit(args.usage());
-            server(server_args).ok_or_exit(args.usage());
+        Some(("server", sub_matches)) => {
+            let server_args = ServerArgs::new_with(sub_matches).ok_or_exit("Invalid server arguments");
+            server(server_args).ok_or_exit("Server failed to start");
         }
-        ("client", Some(args)) => {
-            let client_args = ClientArgs::new_with(args).ok_or_exit(args.usage());
-            client(client_args).ok_or_exit(args.usage());
+        Some(("client", sub_matches)) => {
+            let client_args = ClientArgs::new_with(sub_matches).ok_or_exit("Invalid client arguments");
+            client(client_args).await.ok_or_exit("Client failed to start");
         }
-        (&_, _) => {}
+        _ => {}
     }
 }
