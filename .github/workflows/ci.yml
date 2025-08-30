@@ -99,7 +99,7 @@ jobs:
       run: cargo install cargo-tarpaulin
 
     - name: Generate coverage report
-      run: cargo tarpaulin --out Lcov --output-dir coverage
+      run: cargo tarpaulin --out Lcov --output-dir coverage --exclude-files "tests/integration_*"
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v4
