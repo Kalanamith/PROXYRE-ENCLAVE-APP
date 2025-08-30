@@ -1,11 +1,5 @@
 # Proxy Re-encryption Enclave Application
 
-[![CI](https://github.com/personal/PROXYRE-ENCLAVE-APP/actions/workflows/ci.yml/badge.svg)](https://github.com/personal/PROXYRE-ENCLAVE-APP/actions/workflows/ci.yml)
-[![Code Quality](https://github.com/personal/PROXYRE-ENCLAVE-APP/actions/workflows/code-quality.yml/badge.svg)](https://github.com/personal/PROXYRE-ENCLAVE-APP/actions/workflows/code-quality.yml)
-[![Security Audit](https://github.com/personal/PROXYRE-ENCLAVE-APP/actions/workflows/scheduled.yml/badge.svg)](https://github.com/personal/PROXYRE-ENCLAVE-APP/actions/workflows/scheduled.yml)
-
-> **Note**: If badges are not rendering, ensure the repository exists at `github.com/personal/PROXYRE-ENCLAVE-APP` and GitHub Actions workflows have run at least once.
->
 
 > - ![Rust](https://img.shields.io/badge/rust-1.70%2B-orange)
 > - ![Docker](https://img.shields.io/badge/docker-ready-blue)
