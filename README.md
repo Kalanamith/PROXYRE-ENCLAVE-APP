@@ -334,15 +334,6 @@ cargo test --test integration_client
 cargo bench
 ```
 
-### Test Coverage
-
-The application includes comprehensive test coverage with:
-
-- **71 unit tests** covering all major functionality
-- **1 integration test** for end-to-end validation
-- **Test coverage** for models, utilities, and protocols
-- **Documentation tests** validating code examples
-
 ## 🔧 Development
 
 ### Code Quality Tools
