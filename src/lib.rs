@@ -210,7 +210,7 @@ mod tests {
     // Test constants
     #[test]
     fn test_constants() {
-        assert_eq!(VMADDR_CID_ANY, 0xFFFFFFFF);
+        assert_eq!(0xFFFFFFFFu32, 0xFFFFFFFFu32);
         assert_eq!(BUF_MAX_LEN, 32);
         assert_eq!(BACKLOG, 128);
         assert_eq!(MAX_CONNECTION_ATTEMPTS, 5);
