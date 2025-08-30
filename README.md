@@ -1,6 +1,6 @@
 # Proxy Re-encryption Enclave Application
 
-> **Alternative Badge Formats** (if the above don't work):
+
 > - ![Rust](https://img.shields.io/badge/rust-1.70%2B-orange)
 > - ![Docker](https://img.shields.io/badge/docker-ready-blue)
 > - ![AWS](https://img.shields.io/badge/AWS%20Nitro%20Enclave-supported-green)
