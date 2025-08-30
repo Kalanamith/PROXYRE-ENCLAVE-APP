@@ -5,14 +5,13 @@ mod proto;
 pub mod protocol_helpers;
 pub mod utils;
 use command_parser::{ClientArgs, ServerArgs};
-use protocol_helpers::{recv_loop, recv_u64, send_loop, send_u64};
+use protocol_helpers::{recv_loop, recv_u64};
 
-use ed25519_dalek::{SigningKey, VerifyingKey};
+use ed25519_dalek::SigningKey;
 use nix::sys::socket::{accept, bind, connect, shutdown, socket, Backlog};
 use nix::sys::socket::{AddressFamily, Shutdown, SockFlag, SockType, SockaddrIn};
 use nix::unistd::close;
 use rand::RngCore;
-use std::convert::TryInto;
 use std::os::fd::IntoRawFd;
 use std::os::unix::io::{AsRawFd, RawFd};
 
@@ -20,7 +19,7 @@ use recrypt::api::{
     CryptoOps, Ed25519Ops, EncryptedValue, KeyGenOps, Plaintext, PrivateKey, PublicKey, Recrypt,
     TransformBlock,
 };
-use rocket::{get, launch, post, routes, Config};
+use rocket::{get, post, routes, Config};
 
 use proto::transform::{PublicKey as PPK, TransformBlock as TFB, TransformObject as TFO};
 use protobuf;
@@ -45,7 +44,6 @@ mod tests {
     use crate::command_parser::*;
     use crate::models::*;
     use crate::utils::*;
-    use clap::Command;
     use serde_json;
 
     // Test model serialization and deserialization
@@ -364,6 +362,7 @@ impl AsRawFd for VsockSocket {
 }
 
 /// Initiate a connection on an AF_VSOCK socket
+#[allow(dead_code)]
 fn vsock_connect(cid: u32, port: u32) -> Result<VsockSocket, String> {
     let sockaddr = SockaddrIn::new(0, 0, 0, 0, port as u16); // TODO: Fix vsock
     let mut err_msg = String::new();
@@ -662,10 +661,10 @@ fn get_key_pair() -> rocket::serde::json::Json<Keys> {
 }
 /// Starting point of the Enclave Parent Instance
 pub async fn client(args: ClientArgs) -> Result<(), String> {
-    let config = rocket::Config {
+    let config = Config {
         port: args.port as u16,
         address: std::net::IpAddr::V4(std::net::Ipv4Addr::new(127, 0, 0, 1)),
-        ..rocket::Config::default()
+        ..Config::default()
     };
 
     let rocket = rocket::custom(&config)

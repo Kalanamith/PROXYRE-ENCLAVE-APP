@@ -1,5 +1,4 @@
 use byteorder::{ByteOrder, LittleEndian};
-use nix::errno::Errno;
 use nix::sys::socket::MsgFlags;
 use nix::sys::socket::{recv, send};
 use std::convert::TryInto;

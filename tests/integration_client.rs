@@ -1,4 +1,3 @@
-use assert_cmd::prelude::*;
 use std::process::{Command, Stdio};
 use std::time::Duration;
 use tokio::time::sleep;
