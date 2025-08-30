@@ -479,6 +479,10 @@ mod tests {
 5. **Run full test suite**
 
 
+## 📋 Changelog
+
+See [CHANGELOG.md](./CHANGELOG.md) for a detailed history of changes, bug fixes, and new features.
+
 ## 🤝 Contributing
 
 1. **Fork the repository**
