@@ -522,17 +522,6 @@ git push origin feature/amazing-feature
 
 9. **Open a Pull Request**
 
-### Commit Message Format
-
-This project follows [Conventional Commits](https://conventionalcommits.org/):
-
-```bash
-feat: add new encryption endpoint
-fix: resolve memory leak in key generation
-docs: update API documentation
-test: add unit tests for crypto operations
-refactor: simplify error handling logic
-```
 
 ## 📄 License
 
@@ -544,16 +533,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [Recrypt](https://github.com/twardoch/recrypt) library for proxy re-encryption implementation
 - [Rocket](https://rocket.rs/) web framework for the HTTP API
 - [Tokio](https://tokio.rs/) for asynchronous runtime
-
-## 📞 Support
-
-For questions, issues, or contributions:
-
-- 📧 **Email**: <dev@proxy-reencyption.io>
-- 🐛 **Issues**: [GitHub Issues](https://github.com/your-username/proxy-reencryption-enclave-app/issues)
-- 📖 **Documentation**: [GitHub Wiki](https://github.com/your-username/proxy-reencryption-enclave-app/wiki)
-- 💬 **Discussions**: [GitHub Discussions](https://github.com/your-username/proxy-reencryption-enclave-app/discussions)
-
----
-
-**⚠️ Security Notice**: This application handles cryptographic operations. Ensure proper key management and secure deployment practices in production environments.
