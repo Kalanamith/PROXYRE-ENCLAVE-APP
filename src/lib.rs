@@ -661,8 +661,14 @@ fn get_key_pair() -> rocket::serde::json::Json<Keys> {
     rocket::serde::json::Json(keys)
 }
 /// Starting point of the Enclave Parent Instance
-pub async fn client(_args: ClientArgs) -> Result<(), String> {
-    let rocket = rocket::build()
+pub async fn client(args: ClientArgs) -> Result<(), String> {
+    let config = rocket::Config {
+        port: args.port as u16,
+        address: std::net::IpAddr::V4(std::net::Ipv4Addr::new(127, 0, 0, 1)),
+        ..rocket::Config::default()
+    };
+
+    let rocket = rocket::custom(&config)
         .mount("/", routes![get_root])
         .mount("/", routes![get_key_pair]) // get
         .mount("/", routes![upload_content]) // post
