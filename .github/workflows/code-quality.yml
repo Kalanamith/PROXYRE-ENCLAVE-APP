@@ -1,0 +1,82 @@
+name: Code Quality
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  quality:
+    name: Code Quality Checks
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v4
+
+    - name: Install Rust toolchain
+      uses: dtolnay/rust-toolchain@master
+      with:
+        toolchain: stable
+
+    - name: Cache dependencies
+      uses: Swatinem/rust-cache@v2
+
+    - name: Check formatting
+      run: cargo fmt --all -- --check
+
+    - name: Run clippy with pedantic settings
+      run: cargo clippy --all-targets --all-features -- -W clippy::pedantic -W clippy::nursery -D warnings
+
+    - name: Check for unused dependencies
+      run: |
+        cargo install cargo-udeps --locked
+        cargo +nightly udeps --all-targets
+
+    - name: Check documentation
+      run: cargo doc --no-deps --document-private-items
+      env:
+        RUSTDOCFLAGS: -Dwarnings
+
+    - name: Check for security vulnerabilities
+      run: |
+        cargo install cargo-audit --locked
+        cargo audit
+
+    - name: Check for outdated dependencies
+      run: |
+        cargo install cargo-outdated --locked
+        cargo outdated --exit-code 1 || echo "Some dependencies are outdated, consider updating them"
+
+  license-check:
+    name: License Compatibility
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v4
+
+    - name: Check license compatibility
+      run: |
+        cargo install cargo-license --locked
+        cargo license --json | jq '.[] | select(.license | test("^(MIT|Apache-2.0|BSD-3-Clause|ISC)$") | not) | .name' | wc -l | xargs test 0 -eq
+
+  msrv-check:
+    name: MSRV Compatibility
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        rust: [1.70.0, 1.71.0, 1.72.0]
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v4
+
+    - name: Install Rust toolchain
+      uses: dtolnay/rust-toolchain@master
+      with:
+        toolchain: ${{ matrix.rust }}
+
+    - name: Check compilation
+      run: cargo check --all-targets

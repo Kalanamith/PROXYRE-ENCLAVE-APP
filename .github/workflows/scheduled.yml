@@ -1,0 +1,85 @@
+name: Scheduled Checks
+
+on:
+  schedule:
+    # Run daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  nightly-check:
+    name: Nightly Build Check
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v4
+
+    - name: Install Rust toolchain
+      uses: dtolnay/rust-toolchain@master
+      with:
+        toolchain: nightly
+
+    - name: Cache dependencies
+      uses: Swatinem/rust-cache@v2
+
+    - name: Check compilation
+      run: cargo check --all-targets
+
+    - name: Run tests
+      run: cargo test
+
+  dependency-check:
+    name: Dependency Health Check
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v4
+
+    - name: Install Rust toolchain
+      uses: dtolnay/rust-toolchain@master
+      with:
+        toolchain: stable
+
+    - name: Cache dependencies
+      uses: Swatinem/rust-cache@v2
+
+    - name: Check for security vulnerabilities
+      run: |
+        cargo install cargo-audit --locked
+        cargo audit
+
+    - name: Check for outdated dependencies
+      run: |
+        cargo install cargo-outdated --locked
+        cargo outdated
+
+  performance-baseline:
+    name: Performance Baseline
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v4
+
+    - name: Install Rust toolchain
+      uses: dtolnay/rust-toolchain@master
+      with:
+        toolchain: stable
+
+    - name: Cache dependencies
+      uses: Swatinem/rust-cache@v2
+
+    - name: Install cargo-criterion
+      run: cargo install cargo-criterion --locked
+
+    - name: Run performance benchmarks
+      run: cargo criterion --message-format=json > benchmark_results.json || echo "No benchmarks defined"
+
+    - name: Store benchmark results
+      uses: actions/upload-artifact@v4
+      with:
+        name: benchmark-results
+        path: benchmark_results.json
+      if: success()

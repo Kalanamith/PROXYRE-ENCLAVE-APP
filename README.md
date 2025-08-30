@@ -13,7 +13,7 @@ cargo run -- client --cid 3 --port 5005
 
 # Deployment
 
-```bashls
+```bash
 cargo build --target=x86_64-unknown-linux-musl --release
 ```
 
@@ -55,4 +55,106 @@ nitro-cli run-enclave --eif-path dark.eif --cpu-count 2 --enclave-cid 6 --memory
 Warning: environment is 'production', but no `secret_key` is configured
 🚀 Rocket has launched from http://0.0.0.0:8000
 
+```
+
+## CI/CD
+
+This project uses GitHub Actions for continuous integration and deployment. The following workflows are configured:
+
+### Workflows
+
+#### 🚀 CI (`ci.yml`)
+- **Triggers**: Push to `main`/`develop`, Pull Requests
+- **Platforms**: Ubuntu, macOS, Windows
+- **Rust Versions**: Stable, Beta, Nightly (Ubuntu only)
+- **Checks**:
+  - Code formatting (`cargo fmt`)
+  - Linting (`cargo clippy`)
+  - Build verification
+  - Unit tests
+  - Integration tests
+  - Security audit
+  - Documentation build
+
+#### 🔒 Code Quality (`code-quality.yml`)
+- **Triggers**: Push to `main`/`develop`, Pull Requests
+- **Checks**:
+  - Strict clippy with pedantic warnings
+  - Unused dependencies check
+  - Security vulnerabilities scan
+  - License compatibility check
+  - MSRV (Minimum Supported Rust Version) validation
+  - Documentation completeness
+
+#### 📋 Pull Request Checks (`pr-checks.yml`)
+- **Triggers**: Pull Requests
+- **Checks**:
+  - Commit message format validation
+  - PR size limits
+  - Dependency review
+  - Test coverage requirements
+  - TODO comment detection
+
+#### 📦 Release (`release.yml`)
+- **Triggers**: Git tags matching `v*.*.*`
+- **Actions**:
+  - Build release binaries
+  - Create GitHub releases
+  - Publish to crates.io (if configured)
+
+#### ⏰ Scheduled (`scheduled.yml`)
+- **Triggers**: Daily at 2 AM UTC, Manual trigger
+- **Checks**:
+  - Nightly Rust compatibility
+  - Dependency health monitoring
+  - Performance baseline tracking
+
+### Dependencies
+
+#### Automated Updates
+Dependencies are automatically updated via [Dependabot](https://github.com/dependabot) with weekly checks for:
+- Security updates
+- Minor version updates
+- Patch updates
+
+#### Required Secrets
+For publishing releases, configure these GitHub secrets:
+- `CRATES_IO_TOKEN`: For publishing to crates.io
+
+### Local Development
+
+```bash
+# Run all tests locally
+cargo test
+
+# Run with coverage (requires cargo-tarpaulin)
+cargo install cargo-tarpaulin
+cargo tarpaulin
+
+# Run clippy with pedantic checks
+cargo clippy --all-targets --all-features -- -W clippy::pedantic
+
+# Check formatting
+cargo fmt --all -- --check
+
+# Security audit
+cargo install cargo-audit
+cargo audit
+```
+
+### Branch Protection
+
+It's recommended to configure branch protection rules for `main`:
+- Require status checks to pass
+- Require up-to-date branches
+- Include administrators in restrictions
+
+### Badges
+
+Add these badges to your README:
+
+```markdown
+[![CI](https://github.com/your-username/proxy-reencryption-enclave-app/actions/workflows/ci.yml/badge.svg)](https://github.com/your-username/proxy-reencryption-enclave-app/actions/workflows/ci.yml)
+[![Code Quality](https://github.com/your-username/proxy-reencryption-enclave-app/actions/workflows/code-quality.yml/badge.svg)](https://github.com/your-username/proxy-reencryption-enclave-app/actions/workflows/code-quality.yml)
+[![Security Audit](https://github.com/your-username/proxy-reencryption-enclave-app/actions/workflows/ci.yml/badge.svg?event=schedule)](https://github.com/your-username/proxy-reencryption-enclave-app/actions/workflows/scheduled.yml)
 ```
