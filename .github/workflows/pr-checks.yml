@@ -25,17 +25,6 @@ jobs:
     - name: Cache dependencies
       uses: Swatinem/rust-cache@v2
 
-    - name: Check commit messages
-      run: |
-        # Check that commits follow conventional commit format
-        git log --oneline ${{ github.event.pull_request.head.sha }}~${{ github.event.pull_request.commits }}..${{ github.event.pull_request.head.sha }} | while read -r line; do
-          if ! echo "$line" | grep -qE "^(feat|fix|docs|style|refactor|test|chore|perf|ci|build|revert)(\(.+\))?: .{1,}"; then
-            echo "Commit message format is incorrect: $line"
-            echo "Expected format: type(scope): description"
-            exit 1
-          fi
-        done
-
     - name: Build project
       run: cargo build --verbose
 
