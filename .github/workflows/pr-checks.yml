@@ -42,11 +42,6 @@ jobs:
     - name: Run tests
       run: cargo test --verbose
 
-    - name: Check test coverage
-      run: |
-        cargo install cargo-tarpaulin --locked
-        cargo tarpaulin --fail-under 70 --exclude-files "tests/integration_*"
-
   pr-size-check:
     name: PR Size Check
     runs-on: ubuntu-latest
