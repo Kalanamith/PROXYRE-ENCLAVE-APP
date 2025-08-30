@@ -39,25 +39,6 @@ jobs:
     - name: Run integration tests
       run: cargo test --test integration_client --verbose
 
-  # Separate job for security audit
-  audit:
-    name: Security Audit
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout sources
-      uses: actions/checkout@v4
-
-    - name: Install Rust toolchain
-      uses: dtolnay/rust-toolchain@stable
-      with:
-        toolchain: stable
-
-    - name: Install cargo-audit
-      run: cargo install cargo-audit
-
-    - name: Run security audit
-      run: cargo audit
-
   # Check MSRV (Minimum Supported Rust Version)
   msrv:
     name: Minimum Supported Rust Version

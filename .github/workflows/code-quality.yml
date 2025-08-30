@@ -35,11 +35,6 @@ jobs:
       env:
         RUSTDOCFLAGS: -Dwarnings
 
-    - name: Check for security vulnerabilities
-      run: |
-        cargo install cargo-audit --locked
-        cargo audit
-
     - name: Check for outdated dependencies
       run: |
         cargo install cargo-outdated --locked

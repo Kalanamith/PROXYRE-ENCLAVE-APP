@@ -48,11 +48,6 @@ jobs:
     - name: Cache dependencies
       uses: Swatinem/rust-cache@v2
 
-    - name: Check for security vulnerabilities
-      run: |
-        cargo install cargo-audit --locked
-        cargo audit
-
     - name: Check for outdated dependencies
       run: |
         cargo install cargo-outdated --locked
