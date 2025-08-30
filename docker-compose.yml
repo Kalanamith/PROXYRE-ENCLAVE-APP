@@ -1,0 +1,102 @@
+version: '3.8'
+
+services:
+  # Main proxy re-encryption service
+  proxy-reencryption:
+    build:
+      context: .
+      target: runtime
+    ports:
+      - "8000:8000"
+    environment:
+      - RUST_LOG=info
+      - ROCKET_ADDRESS=0.0.0.0
+      - ROCKET_PORT=8000
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - proxy-net
+
+  # Development service with hot reload
+  proxy-reencryption-dev:
+    build:
+      context: .
+      target: development
+    ports:
+      - "8001:8000"
+    volumes:
+      - .:/app
+      - /app/target
+    environment:
+      - RUST_LOG=debug
+      - ROCKET_ADDRESS=0.0.0.0
+      - ROCKET_PORT=8000
+    profiles:
+      - dev
+
+  # Test service
+  proxy-reencryption-test:
+    build:
+      context: .
+      target: test
+    profiles:
+      - test
+
+  # Database service (if needed in future)
+  # postgres:
+  #   image: postgres:15-alpine
+  #   environment:
+  #     POSTGRES_DB: proxy_reencryption
+  #     POSTGRES_USER: proxy_user
+  #     POSTGRES_PASSWORD: proxy_password
+  #   ports:
+  #     - "5432:5432"
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   networks:
+  #     - proxy-net
+
+  # Redis for caching (if needed in future)
+  # redis:
+  #   image: redis:7-alpine
+  #   ports:
+  #     - "6379:6379"
+  #   volumes:
+  #     - redis_data:/data
+  #   networks:
+  #     - proxy-net
+
+networks:
+  proxy-net:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+
+# Usage examples:
+# Start production service:
+# docker-compose up proxy-reencryption
+#
+# Start development service with hot reload:
+# docker-compose --profile dev up proxy-reencryption-dev
+#
+# Run tests:
+# docker-compose --profile test up proxy-reencryption-test
+#
+# Start all services:
+# docker-compose up -d
+#
+# View logs:
+# docker-compose logs -f proxy-reencryption
+#
+# Scale the service:
+# docker-compose up -d --scale proxy-reencryption=3
+#
+# Clean up:
+# docker-compose down -v

@@ -1,0 +1,59 @@
+name: Code Quality
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  quality:
+    name: Code Quality Checks
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v4
+
+    - name: Install Rust toolchain
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        toolchain: stable
+
+    - name: Cache dependencies
+      uses: Swatinem/rust-cache@v2
+
+    - name: Check for unused dependencies
+      run: |
+        cargo install cargo-udeps --locked
+        cargo +nightly udeps --all-targets
+
+    - name: Check documentation
+      run: cargo doc --no-deps --document-private-items
+      env:
+        RUSTDOCFLAGS: -Dwarnings
+
+    - name: Check for outdated dependencies
+      run: |
+        cargo install cargo-outdated --locked
+        cargo outdated --exit-code 1 || echo "Some dependencies are outdated, consider updating them"
+
+  msrv-check:
+    name: MSRV Compatibility
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        rust: [1.70.0, 1.71.0, 1.72.0]
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v4
+
+    - name: Install Rust toolchain
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        toolchain: ${{ matrix.rust }}
+
+    - name: Check compilation
+      run: cargo check --all-targets

@@ -5,6 +5,7 @@
 // https://github.com/rust-lang/rust-clippy/issues/702
 #![allow(unknown_lints)]
 #![allow(clippy::all)]
+#![allow(renamed_and_removed_lints)]
 
 #![allow(unused_attributes)]
 #![cfg_attr(rustfmt, rustfmt::skip)]
@@ -23,7 +24,7 @@
 
 /// Generated files are compatible only with the same version
 /// of protobuf runtime.
-const _PROTOBUF_VERSION_CHECK: () = ::protobuf::VERSION_3_1_0;
+const _PROTOBUF_VERSION_CHECK: () = ::protobuf::VERSION_3_7_2;
 
 #[derive(PartialEq,Clone,Default,Debug)]
 // @@protoc_insertion_point(message:proxy_reencyption.proto.PublicKey)
