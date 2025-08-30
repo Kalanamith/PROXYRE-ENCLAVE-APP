@@ -6,8 +6,8 @@ use tokio::time::sleep;
 const TEST_PORT: u16 = 8999;
 
 async fn wait_for_server(port: u16) -> Result<(), Box<dyn std::error::Error>> {
-    let url = format!("http://localhost:{}/", port);
-    println!("Waiting for server to be ready at {}", url);
+    let url = format!("http://localhost:{port}/");
+    println!("Waiting for server to be ready at {url}");
 
     // Try to connect to the health endpoint until it responds or timeout
     for attempt in 0..40 {
@@ -36,7 +36,7 @@ async fn test_client_endpoints() {
     // Spawn the client server as a subprocess
     let mut cmd = Command::new("cargo");
     let child = cmd
-        .args(&["run", "--", "client", "--port", &TEST_PORT.to_string(), "--cid", "1"])
+        .args(["run", "--", "client", "--port", &TEST_PORT.to_string(), "--cid", "1"])
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn()
@@ -51,11 +51,11 @@ async fn test_client_endpoints() {
         let output = child.wait_with_output().expect("Failed to wait for child process");
         println!("Server stdout: {}", String::from_utf8_lossy(&output.stdout));
         println!("Server stderr: {}", String::from_utf8_lossy(&output.stderr));
-        panic!("Server failed to start: {}", e);
+        panic!("Server failed to start: {e}");
     }
 
     // Test health check endpoint
-    let url = format!("http://localhost:{}/", TEST_PORT);
+    let url = format!("http://localhost:{TEST_PORT}/");
     let resp = reqwest::get(&url)
         .await
         .expect("Failed to send request");
@@ -64,7 +64,7 @@ async fn test_client_endpoints() {
     assert_eq!(body, "\"Hola!!!\"");
 
     // Test get-keys endpoint
-    let keys_url = format!("http://localhost:{}/get-keys/", TEST_PORT);
+    let keys_url = format!("http://localhost:{TEST_PORT}/get-keys/");
     let resp = reqwest::get(&keys_url)
         .await
         .expect("Failed to send request");
@@ -99,7 +99,7 @@ async fn test_client_endpoints() {
             }
         }
         Err(e) => {
-            println!("Failed to wait for server process: {}", e);
+            println!("Failed to wait for server process: {e}");
         }
     }
 }

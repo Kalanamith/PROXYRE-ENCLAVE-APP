@@ -87,7 +87,7 @@ mod tests {
             resource: vec![6],
         };
 
-        let debug_str = format!("{:?}", payload);
+        let debug_str = format!("{payload:?}");
         assert!(debug_str.contains("Payload"));
         assert!(debug_str.contains("initial_private_key"));
         assert!(debug_str.contains("resource"));

@@ -13,16 +13,14 @@ use log::error;
 /// ```rust
 /// use proxy_reencyption_enclave_app::utils::ExitGracefully;
 ///
-/// fn main() {
-///     let result: Result<i32, &str> = Ok(42);
-///     // This will return the value 42
-///     let value = result.ok_or_exit("This message won't be logged");
-///     println!("Got value: {}", value);
+/// let result: Result<i32, &str> = Ok(42);
+/// // This will return the value 42
+/// let value = result.ok_or_exit("This message won't be logged");
+/// println!("Got value: {}", value);
 ///
-///     // If we had an error, it would exit:
-///     // let error_result: Result<i32, &str> = Err("Something went wrong");
-///     // let value = error_result.ok_or_exit("Failed to get value"); // Exits here
-/// }
+/// // If we had an error, it would exit:
+/// // let error_result: Result<i32, &str> = Err("Something went wrong");
+/// // let value = error_result.ok_or_exit("Failed to get value"); // Exits here
 /// ```
 pub trait ExitGracefully<T, E> {
     /// Unwraps a `Result`, logging the error and exiting the program if it's `Err`.
@@ -69,7 +67,7 @@ impl<T, E: std::fmt::Debug> ExitGracefully<T, E> for Result<T, E> {
         match self {
             Ok(val) => val,
             Err(err) => {
-                error!("{:?}: {}", err, message);
+                error!("{err:?}: {message}");
                 std::process::exit(1);
             }
         }
@@ -204,7 +202,7 @@ mod tests {
         // The trait is implemented automatically for all Result types where E: std::fmt::Debug
         // We can't test the actual exit behavior since std::process::exit terminates the process
         // But we can verify the trait is available by using it in a type annotation
-        assert!(true, "ExitGracefully trait is implemented for Result types");
+        // ExitGracefully trait is implemented for Result types
     }
 
     // Test macro functionality

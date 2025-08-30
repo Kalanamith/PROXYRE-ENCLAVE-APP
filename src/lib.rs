@@ -22,7 +22,7 @@ use recrypt::api::{
 use rocket::{get, post, routes, Config};
 
 use proto::transform::{PublicKey as PPK, TransformBlock as TFB, TransformObject as TFO};
-use protobuf;
+
 use protobuf::Message;
 
 mod models;
@@ -32,8 +32,6 @@ use crate::models::{
     TransformedObject, TransformedObjectResponse,
 };
 
-use serde_json;
-
 extern crate rand;
 
 #[cfg(test)]
@@ -42,7 +40,6 @@ mod tests {
     use crate::command_parser::*;
     use crate::models::*;
     use crate::utils::*;
-    use serde_json;
 
     // Test model serialization and deserialization
     #[test]
@@ -169,7 +166,7 @@ mod tests {
         // in a unit test. This would normally exit the process.
         // Instead, we verify the trait is implemented by checking the type
         // The trait is automatically implemented for all Result types where E: std::fmt::Debug
-        assert!(true, "ExitGracefully trait is implemented for Result types");
+        // ExitGracefully trait is implemented for Result types
     }
 
     // Test VsockSocket implementation
@@ -348,8 +345,8 @@ impl VsockSocket {
 impl Drop for VsockSocket {
     fn drop(&mut self) {
         shutdown(self.socket_fd, Shutdown::Both)
-            .unwrap_or_else(|e| eprintln!("Failed to shut socket down: {:?}", e));
-        close(self.socket_fd).unwrap_or_else(|e| eprintln!("Failed to close socket: {:?}", e));
+            .unwrap_or_else(|e| eprintln!("Failed to shut socket down: {e:?}"));
+        close(self.socket_fd).unwrap_or_else(|e| eprintln!("Failed to close socket: {e:?}"));
     }
 }
 
@@ -367,17 +364,17 @@ fn vsock_connect(_cid: u32, port: u32) -> Result<VsockSocket, String> {
 
     for i in 0..MAX_CONNECTION_ATTEMPTS {
         let owned_fd = socket(
-            AddressFamily::Vsock,
-            SockType::Stream,
-            SockFlag::empty(),
-            None,
-        )
-        .map_err(|err| format!("Failed to create the socket: {:?}", err))?;
+                AddressFamily::Vsock,
+                SockType::Stream,
+                SockFlag::empty(),
+                None,
+            )
+        .map_err(|err| format!("Failed to create the socket: {err:?}"))?;
         let socket_fd = owned_fd.into_raw_fd();
         let vsocket = VsockSocket::new(socket_fd);
         match connect(vsocket.as_raw_fd(), &sockaddr) {
             Ok(_) => return Ok(vsocket),
-            Err(e) => err_msg = format!("Failed to connect: {}", e),
+            Err(e) => err_msg = format!("Failed to connect: {e}"),
         }
 
         // Exponentially backoff before retrying to connect to the socket
@@ -401,9 +398,9 @@ fn tfb_from_params(transform_block: &TransformBlock) -> TFB {
     let random_transform_pk = ppk_from_public_key(transform_block.random_transform_public_key());
     let mut tbf = TFB::new();
 
-    tbf.public_key = Some(PPK::from(transform_block_pk).into()).into();
+    tbf.public_key = Some(transform_block_pk).into();
     tbf.encrypted_temp_key = Vec::from(transform_block.encrypted_temp_key().bytes().as_slice());
-    tbf.random_transform_public_key = Some(PPK::from(random_transform_pk.clone()).into()).into();
+    tbf.random_transform_public_key = Some(random_transform_pk.clone()).into();
     tbf.encrypted_random_transform_temp_key = Vec::from(
         transform_block
             .encrypted_random_transform_temp_key()
@@ -484,7 +481,7 @@ fn get_root() -> &'static str {
 #[post("/upload", data = "<payload>")]
 fn upload_content(payload: String) -> &'static str {
     // TODO: figure this out
-    println!("payload --- {:?}", payload);
+    println!("payload --- {payload:?}");
     println!();
 
     "\"upload_content - work in progress\""
@@ -492,7 +489,7 @@ fn upload_content(payload: String) -> &'static str {
 
 #[post("/fetch", data = "<payload>")]
 fn fetch_content(payload: String) -> rocket::serde::json::Json<TransformedObjectResponse> {
-    println!("payload --- {:?}", payload);
+    println!("payload --- {payload:?}");
     println!();
 
     // Parse JSON payload
@@ -500,7 +497,7 @@ fn fetch_content(payload: String) -> rocket::serde::json::Json<TransformedObject
         Ok(p) => p,
         Err(e) => {
             let error_response = TransformedObjectResponse {
-                transformed_object: format!("Failed to parse payload: {}", e),
+                transformed_object: format!("Failed to parse payload: {e}"),
             };
             return rocket::serde::json::Json(error_response);
         }
@@ -519,7 +516,7 @@ fn fetch_content(payload: String) -> rocket::serde::json::Json<TransformedObject
         &payload.delegatee_public_key_x,
         &payload.delegatee_public_key_y,
     ))
-    .unwrap();
+        .unwrap();
 
     // *********************************************************************
     let recrypt = Recrypt::new();
@@ -558,7 +555,7 @@ fn fetch_content(payload: String) -> rocket::serde::json::Json<TransformedObject
 
     let mut to = TFO::new();
 
-    println!("transformed_val {:?}", transformed_val);
+    println!("transformed_val {transformed_val:?}");
     println!();
 
     if let EncryptedValue::TransformedValue {
@@ -575,10 +572,10 @@ fn fetch_content(payload: String) -> rocket::serde::json::Json<TransformedObject
 
         // End assigning
 
-        to.ephemeral_public_key = Some(PPK::from(ppk).into()).into();
+        to.ephemeral_public_key = Some(ppk).into();
         to.encrypted_message = Vec::from(em.bytes().as_slice());
         to.auth_hash = Vec::from(ah.bytes().as_slice());
-        to.transform_blocks = Some(TFB::from(transblock.clone()).into()).into();
+        to.transform_blocks = Some(transblock.clone()).into();
         to.public_signing_key = Vec::from(ps.bytes().as_slice());
         to.ed25519_signature = Vec::from(sg.bytes().as_slice());
 
@@ -589,7 +586,7 @@ fn fetch_content(payload: String) -> rocket::serde::json::Json<TransformedObject
         // TODO: We might need this structure to deserialize and reconstruct the transform object
         display = trans_response_from_params(&ep, tb.first(), &transblock, &to);
 
-        println!("TransformedObject as Hex values \n {:?}", display);
+        println!("TransformedObject as Hex values \n {display:?}");
     };
 
     println!("Transform Object");
@@ -618,13 +615,13 @@ fn get_key_pair() -> rocket::serde::json::Json<Keys> {
     let recrypt = Recrypt::new();
     let (private_key, public_key) = recrypt.generate_key_pair().unwrap();
 
-    println!("Public Key {:?}", public_key);
+    println!("Public Key {public_key:?}");
     println!();
 
     let pk = PPK::new();
     let bbs = protobuf::Message::write_to_bytes(&pk).unwrap();
 
-    println!("Public Key ---- {:?}", bbs);
+    println!("Public Key ---- {bbs:?}");
     println!();
 
     let keys = Keys {
@@ -662,22 +659,22 @@ pub fn server(args: ServerArgs) -> Result<(), String> {
         SockFlag::empty(),
         None,
     )
-    .map_err(|err| format!("Create socket failed: {:?}", err))?;
+    .map_err(|err| format!("Create socket failed: {err:?}"))?;
     let socket_fd = owned_fd.as_raw_fd();
 
     let sockaddr = SockaddrIn::new(0, 0, 0, 0, args.port as u16); // Placeholder, will need to fix vsock
 
-    bind(socket_fd, &sockaddr).map_err(|err| format!("Bind failed: {:?}", err))?;
+    bind(socket_fd, &sockaddr).map_err(|err| format!("Bind failed: {err:?}"))?;
 
     nix::sys::socket::listen(&owned_fd, Backlog::new(BACKLOG as i32).unwrap())
-        .map_err(|err| format!("Listen failed: {:?}", err))?;
+        .map_err(|err| format!("Listen failed: {err:?}"))?;
 
     loop {
         // Read Key Generation Request
 
         // Read Encryption Request
 
-        let fd = accept(socket_fd).map_err(|err| format!("Accept failed: {:?}", err))?;
+        let fd = accept(socket_fd).map_err(|err| format!("Accept failed: {err:?}"))?;
 
         let len = recv_u64(fd)?;
         let mut buf = [0u8; BUF_MAX_LEN];
@@ -693,7 +690,7 @@ pub fn server(args: ServerArgs) -> Result<(), String> {
         let ed_public_key = verifying_key.as_bytes();
         let _ed_private_key = signing_key.as_bytes();
 
-        let received_public_key = ecies_ed25519::PublicKey::from_bytes(&buf.as_slice()).unwrap();
+        let received_public_key = ecies_ed25519::PublicKey::from_bytes(buf.as_slice()).unwrap();
 
         // Temporarily disabled due to rand_core version conflicts
         // let encrypted_1 = ecies_ed25519::encrypt(&received_public_key, ed_public_key, &mut csprng).unwrap();
@@ -703,21 +700,21 @@ pub fn server(args: ServerArgs) -> Result<(), String> {
 
         println!("Received clients public key in bytes  {:?}", buf.clone());
         println!(
-            "Clients Public Key  {:?}",
-            hex::encode(&received_public_key)
+            "Clients Public Key  {}",
+            hex::encode(received_public_key)
         );
 
         println!(
-            "ED25519 Generated Public Key {:?}",
-            hex::encode(&ed_public_key)
+            "ED25519 Generated Public Key {}",
+            hex::encode(ed_public_key)
         );
         println!(
-            "ED25519 Encrypted private key key with Clients Public Key {:?} ",
-            hex::encode(&encrypted_2)
+            "ED25519 Encrypted private key key with Clients Public Key {} ",
+            hex::encode(encrypted_2)
         );
         println!(
-            "ED25519 Encrypted public key with Clients Public Key  {:?}",
-            hex::encode(&encrypted_1)
+            "ED25519 Encrypted public key with Clients Public Key  {}",
+            hex::encode(encrypted_1)
         );
     }
 }

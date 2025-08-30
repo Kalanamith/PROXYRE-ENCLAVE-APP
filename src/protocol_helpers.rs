@@ -45,7 +45,7 @@ use std::os::unix::io::RawFd;
 pub fn send_u64(fd: RawFd, val: u64) -> Result<(), String> {
     let mut buf = [0u8; size_of::<u64>()];
     LittleEndian::write_u64(&mut buf, val);
-    send_loop(fd, &mut buf, size_of::<u64>().try_into().unwrap())?;
+    send_loop(fd, &buf, size_of::<u64>().try_into().unwrap())?;
     Ok(())
 }
 
@@ -144,14 +144,14 @@ pub fn recv_u64(fd: RawFd) -> Result<u64, String> {
 /// - Minimizes system calls by sending as much data as possible per call
 /// - Handles signal interruptions gracefully without data loss
 pub fn send_loop(fd: RawFd, buf: &[u8], len: u64) -> Result<(), String> {
-    let len: usize = len.try_into().map_err(|err| format!("{:?}", err))?;
+    let len: usize = len.try_into().map_err(|err| format!("{err:?}"))?;
     let mut send_bytes = 0;
 
     while send_bytes < len {
         let size = match send(fd, &buf[send_bytes..len], MsgFlags::empty()) {
             Ok(size) => size,
             Err(nix::Error::EINTR) => 0,
-            Err(err) => return Err(format!("{:?}", err)),
+            Err(err) => return Err(format!("{err:?}")),
         };
         send_bytes += size;
     }
@@ -220,14 +220,14 @@ pub fn send_loop(fd: RawFd, buf: &[u8], len: u64) -> Result<(), String> {
 /// - Minimizes system calls by reading as much data as possible per call
 /// - Handles signal interruptions gracefully without data loss
 pub fn recv_loop(fd: RawFd, buf: &mut [u8], len: u64) -> Result<(), String> {
-    let len: usize = len.try_into().map_err(|err| format!("{:?}", err))?;
+    let len: usize = len.try_into().map_err(|err| format!("{err:?}"))?;
     let mut recv_bytes = 0;
 
     while recv_bytes < len {
         let size = match recv(fd, &mut buf[recv_bytes..len], MsgFlags::empty()) {
             Ok(size) => size,
             Err(nix::Error::EINTR) => 0,
-            Err(err) => return Err(format!("{:?}", err)),
+            Err(err) => return Err(format!("{err:?}")),
         };
         recv_bytes += size;
     }
@@ -259,8 +259,7 @@ mod tests {
             let read_value = LittleEndian::read_u64(&buf);
             assert_eq!(
                 value, read_value,
-                "Round-trip conversion failed for value: {}",
-                value
+                "Round-trip conversion failed for value: {value}"
             );
         }
     }
@@ -349,8 +348,8 @@ mod tests {
         LittleEndian::write_u64(&mut buf, test_value);
 
         // Test that all bytes in buffer are accessible
-        for i in 0..8 {
-            let _ = buf[i]; // Should not panic
+        for _ in &buf {
+            // Should not panic - just accessing the buffer
         }
 
         // Verify the written value can be read back

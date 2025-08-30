@@ -61,7 +61,7 @@ mod tests {
     #[test]
     fn test_server_args_debug() {
         let args = ServerArgs { port: 5005 };
-        let debug_str = format!("{:?}", args);
+        let debug_str = format!("{args:?}");
         assert!(debug_str.contains("5005"));
     }
 
@@ -82,7 +82,7 @@ mod tests {
             cid: 456,
             port: 3000,
         };
-        let debug_str = format!("{:?}", args);
+        let debug_str = format!("{args:?}");
         assert!(debug_str.contains("456"));
         assert!(debug_str.contains("3000"));
     }
