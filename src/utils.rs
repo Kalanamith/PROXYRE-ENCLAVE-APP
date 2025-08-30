@@ -109,8 +109,8 @@ impl<T, E: std::fmt::Debug> ExitGracefully<T, E> for Result<T, E> {
 /// # fn main() {
 /// let app = create_app!();
 ///
-/// // Parse command line arguments
-/// let matches = app.get_matches();
+/// // Parse command line arguments (providing dummy args for demonstration)
+/// let matches = app.get_matches_from(vec!["app", "server", "--port", "8080"]);
 ///
 /// // Handle subcommands
 /// match matches.subcommand() {
@@ -120,6 +120,7 @@ impl<T, E: std::fmt::Debug> ExitGracefully<T, E> for Result<T, E> {
 ///             .parse()
 ///             .unwrap();
 ///         // Start server on specified port
+///         println!("Starting server on port {}", port);
 ///     }
 ///     Some(("client", sub_matches)) => {
 ///         let port: u32 = sub_matches.get_one::<String>("port")
@@ -131,9 +132,11 @@ impl<T, E: std::fmt::Debug> ExitGracefully<T, E> for Result<T, E> {
 ///             .parse()
 ///             .unwrap();
 ///         // Connect to server with specified port and CID
+///         println!("Connecting to server on port {} with CID {}", port, cid);
 ///     }
 ///     _ => {
 ///         // Handle invalid subcommand
+///         println!("Invalid subcommand");
 ///     }
 /// }
 /// # }
@@ -143,10 +146,18 @@ impl<T, E: std::fmt::Debug> ExitGracefully<T, E> for Result<T, E> {
 ///
 /// ```rust
 /// # fn main() {
+/// use proxy_reencyption_enclave_app::create_app;
+///
 ///     let app = create_app!();
-///     let matches = app.get_matches();
+///     // Provide dummy arguments to avoid triggering help
+///     let matches = app.get_matches_from(vec!["app", "server", "--port", "8080"]);
 ///
 ///     // Application logic based on matches...
+///     match matches.subcommand() {
+///         Some(("server", _)) => println!("Server mode selected"),
+///         Some(("client", _)) => println!("Client mode selected"),
+///         _ => println!("No valid subcommand provided"),
+///     }
 /// # }
 /// ```
 #[macro_export]
