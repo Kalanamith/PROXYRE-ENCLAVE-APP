@@ -1,9 +1,69 @@
 use log::error;
 
+/// A trait that provides a convenient method to exit the program with an error message
+/// if a `Result` contains an `Err` value.
+///
+/// This trait is automatically implemented for all `Result<T, E>` types where `E` implements `Debug`.
+/// It provides a clean way to handle errors by logging them and terminating the program,
+/// which is particularly useful in command-line applications where graceful error handling
+/// is required.
+///
+/// # Examples
+///
+/// ```rust
+/// use proxy_reencyption_enclave_app::utils::ExitGracefully;
+///
+/// fn main() {
+///     let result: Result<i32, &str> = Ok(42);
+///     // This will return the value 42
+///     let value = result.ok_or_exit("This message won't be logged");
+///     println!("Got value: {}", value);
+///
+///     // If we had an error, it would exit:
+///     // let error_result: Result<i32, &str> = Err("Something went wrong");
+///     // let value = error_result.ok_or_exit("Failed to get value"); // Exits here
+/// }
+/// ```
 pub trait ExitGracefully<T, E> {
+    /// Unwraps a `Result`, logging the error and exiting the program if it's `Err`.
+    ///
+    /// If the `Result` is `Ok(value)`, this method returns `value`.
+    /// If the `Result` is `Err(error)`, this method logs the error message using the
+    /// `log::error!` macro and then calls `std::process::exit(1)` to terminate the program.
+    ///
+    /// # Parameters
+    /// * `message` - A custom error message to include in the log output
+    ///
+    /// # Returns
+    /// Returns the contained `Ok` value if the result is successful.
+    ///
+    /// # Panics
+    /// This method never panics - it terminates the program instead.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+/// use proxy_reencyption_enclave_app::utils::ExitGracefully;
+///
+/// let result: Result<i32, &str> = Ok(42);
+/// assert_eq!(result.ok_or_exit("This won't be logged"), 42);
+///
+/// // The following would exit the program:
+/// // let result: Result<i32, &str> = Err("error");
+/// // result.ok_or_exit("Program failed"); // Exits here
+/// ```
     fn ok_or_exit(self, message: &str) -> T;
 }
 
+/// Implementation of the `ExitGracefully` trait for `Result<T, E>` types.
+///
+/// This implementation provides the concrete behavior for the `ok_or_exit` method.
+/// When a `Result` contains an error, it logs the error with the provided message
+/// and terminates the program with exit code 1.
+///
+/// The error logging uses the `log::error!` macro, so the output will depend on
+/// the current logging configuration. The error value is formatted using its
+/// `Debug` implementation.
 impl<T, E: std::fmt::Debug> ExitGracefully<T, E> for Result<T, E> {
     fn ok_or_exit(self, message: &str) -> T {
         match self {
@@ -16,6 +76,79 @@ impl<T, E: std::fmt::Debug> ExitGracefully<T, E> for Result<T, E> {
     }
 }
 
+/// Creates a configured `clap::Command` for the Proxy Re-encryption Enclave Application.
+///
+/// This macro expands to a complete CLI command definition using the `clap` crate.
+/// It sets up the main command structure with subcommands for both server and client modes.
+///
+/// The generated command includes:
+/// - Application name: "proxy_reencyption Enclave App"
+/// - Description: "Proxy Re Encryption Application"
+/// - Version information from Cargo.toml
+/// - Help requirement (shows help if no arguments provided)
+/// - Two subcommands: `server` and `client`
+///
+/// # Server Subcommand
+/// The server subcommand is used to start the application in server mode.
+/// It requires a `--port` argument specifying which port to listen on.
+///
+/// # Client Subcommand
+/// The client subcommand is used to start the application in client mode.
+/// It requires both `--port` and `--cid` arguments:
+/// - `--port`: The port number to connect to
+/// - `--cid`: The connection ID for the target enclave
+///
+/// # Returns
+/// Returns a fully configured `clap::Command` that can be used to parse command-line arguments.
+///
+/// # Examples
+///
+/// ```rust
+/// use proxy_reencyption_enclave_app::create_app;
+///
+/// # fn main() {
+/// let app = create_app!();
+///
+/// // Parse command line arguments
+/// let matches = app.get_matches();
+///
+/// // Handle subcommands
+/// match matches.subcommand() {
+///     Some(("server", sub_matches)) => {
+///         let port: u32 = sub_matches.get_one::<String>("port")
+///             .unwrap()
+///             .parse()
+///             .unwrap();
+///         // Start server on specified port
+///     }
+///     Some(("client", sub_matches)) => {
+///         let port: u32 = sub_matches.get_one::<String>("port")
+///             .unwrap()
+///             .parse()
+///             .unwrap();
+///         let cid: u32 = sub_matches.get_one::<String>("cid")
+///             .unwrap()
+///             .parse()
+///             .unwrap();
+///         // Connect to server with specified port and CID
+///     }
+///     _ => {
+///         // Handle invalid subcommand
+///     }
+/// }
+/// # }
+/// ```
+///
+/// # Usage in Main Function
+///
+/// ```rust
+/// # fn main() {
+///     let app = create_app!();
+///     let matches = app.get_matches();
+///
+///     // Application logic based on matches...
+/// # }
+/// ```
 #[macro_export]
 macro_rules! create_app {
     () => {

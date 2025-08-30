@@ -1,0 +1,68 @@
+# Proxy Re-encryption Enclave Application Environment Variables
+
+# -----------------------------------------------------------------------------
+# Logging Configuration
+# -----------------------------------------------------------------------------
+# Set log level for the application
+# Options: error, warn, info, debug, trace
+RUST_LOG=info,proxy_reencyption_enclave_app=debug
+
+# -----------------------------------------------------------------------------
+# Rocket Web Framework Configuration
+# -----------------------------------------------------------------------------
+# Server address to bind to
+ROCKET_ADDRESS=0.0.0.0
+
+# Port to listen on
+ROCKET_PORT=8000
+
+# Number of worker threads
+ROCKET_WORKERS=12
+
+# -----------------------------------------------------------------------------
+# Application Configuration
+# -----------------------------------------------------------------------------
+# Enclave connection ID
+ENCLAVE_CID=16
+
+# Enclave memory allocation (MB)
+ENCLAVE_MEMORY=2048
+
+# Enclave CPU count
+ENCLAVE_CPU_COUNT=2
+
+# -----------------------------------------------------------------------------
+# Security Configuration
+# -----------------------------------------------------------------------------
+# Enable/disable security features
+SECURITY_ENABLED=true
+
+# Key rotation interval (seconds)
+KEY_ROTATION_INTERVAL=86400
+
+# Maximum request size (bytes)
+MAX_REQUEST_SIZE=1048576
+
+# Rate limiting (requests per minute)
+RATE_LIMIT=1000
+
+# -----------------------------------------------------------------------------
+# Development Configuration
+# -----------------------------------------------------------------------------
+# Enable development mode
+DEV_MODE=false
+
+# Enable hot reload
+HOT_RELOAD=false
+
+# -----------------------------------------------------------------------------
+# AWS Configuration
+# -----------------------------------------------------------------------------
+# AWS region
+AWS_REGION=us-east-1
+
+# AWS profile
+AWS_PROFILE=default
+
+# Nitro enclave debug mode
+NITRO_DEBUG_MODE=true

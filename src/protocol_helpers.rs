@@ -6,6 +6,43 @@ use std::convert::TryInto;
 use std::mem::size_of;
 use std::os::unix::io::RawFd;
 
+/// Sends a 64-bit unsigned integer over a socket connection.
+///
+/// This function converts a `u64` value to its little-endian byte representation
+/// and sends it over the specified socket file descriptor. The function uses
+/// the `send_loop` function internally to ensure all bytes are transmitted
+/// reliably.
+///
+/// # Parameters
+/// * `fd` - The raw file descriptor of the socket to send data through
+/// * `val` - The 64-bit unsigned integer value to send
+///
+/// # Returns
+/// * `Ok(())` - If the value was successfully sent
+/// * `Err(String)` - If an error occurred during sending
+///
+/// # Errors
+/// This function will return an error if:
+/// - The socket send operation fails
+/// - The connection is broken
+/// - A signal interrupts the send operation
+///
+/// # Examples
+///
+/// ```rust
+/// use std::os::unix::io::RawFd;
+/// use proxy_reencyption_enclave_app::protocol_helpers::send_u64;
+///
+/// fn send_data(sock_fd: RawFd, data: u64) -> Result<(), String> {
+///     send_u64(sock_fd, data)?;
+///     Ok(())
+/// }
+/// ```
+///
+/// # Protocol Details
+/// - Uses little-endian byte order for network transmission
+/// - Sends exactly 8 bytes (size of u64)
+/// - Guarantees complete transmission of all bytes
 pub fn send_u64(fd: RawFd, val: u64) -> Result<(), String> {
     let mut buf = [0u8; size_of::<u64>()];
     LittleEndian::write_u64(&mut buf, val);
@@ -13,6 +50,45 @@ pub fn send_u64(fd: RawFd, val: u64) -> Result<(), String> {
     Ok(())
 }
 
+/// Receives a 64-bit unsigned integer from a socket connection.
+///
+/// This function reads exactly 8 bytes from the specified socket file descriptor,
+/// interprets them as a little-endian `u64` value, and returns the result.
+/// The function uses the `recv_loop` function internally to ensure all bytes
+/// are received reliably before attempting to decode the value.
+///
+/// # Parameters
+/// * `fd` - The raw file descriptor of the socket to receive data from
+///
+/// # Returns
+/// * `Ok(u64)` - The received 64-bit unsigned integer value
+/// * `Err(String)` - If an error occurred during receiving
+///
+/// # Errors
+/// This function will return an error if:
+/// - The socket receive operation fails
+/// - The connection is closed before all bytes are received
+/// - A signal interrupts the receive operation
+/// - The received data cannot be interpreted as a valid u64
+///
+/// # Examples
+///
+/// ```rust
+/// use std::os::unix::io::RawFd;
+/// use proxy_reencyption_enclave_app::protocol_helpers::recv_u64;
+///
+/// fn receive_data(sock_fd: RawFd) -> Result<u64, String> {
+///     let data = recv_u64(sock_fd)?;
+///     println!("Received value: {}", data);
+///     Ok(data)
+/// }
+/// ```
+///
+/// # Protocol Details
+/// - Expects little-endian byte order from network transmission
+/// - Reads exactly 8 bytes (size of u64)
+/// - Blocks until all bytes are received or an error occurs
+/// - Returns the decoded integer value
 pub fn recv_u64(fd: RawFd) -> Result<u64, String> {
     let mut buf = [0u8; size_of::<u64>()];
     recv_loop(fd, &mut buf, size_of::<u64>().try_into().unwrap())?;
@@ -20,7 +96,54 @@ pub fn recv_u64(fd: RawFd) -> Result<u64, String> {
     Ok(val)
 }
 
-/// Send `len` bytes from `buf` to a connection-oriented socket
+/// Sends a specified number of bytes from a buffer to a connection-oriented socket.
+///
+/// This function ensures reliable transmission of data by handling partial sends
+/// and interruptions. It will continue sending data until either all requested
+/// bytes have been transmitted or an unrecoverable error occurs.
+///
+/// The function is designed to handle the common scenario where a single `send()`
+/// call may not transmit all the requested data, requiring multiple calls to
+/// complete the transmission.
+///
+/// # Parameters
+/// * `fd` - The raw file descriptor of the socket to send data through
+/// * `buf` - A byte slice containing the data to send
+/// * `len` - The number of bytes to send from the buffer
+///
+/// # Returns
+/// * `Ok(())` - If all bytes were successfully sent
+/// * `Err(String)` - If an error occurred during sending
+///
+/// # Errors
+/// This function will return an error if:
+/// - The socket send operation fails with a non-interrupt error
+/// - The connection is broken
+/// - The buffer doesn't contain enough data for the requested length
+/// - The length conversion to usize fails (on platforms where usize < u64)
+///
+/// # Behavior
+/// - **Partial Sends**: Handles partial send operations by continuing to send remaining data
+/// - **Signal Handling**: Ignores `EINTR` (interrupted system call) and retries the operation
+/// - **Reliability**: Guarantees that either all data is sent or an error is returned
+///
+/// # Examples
+///
+/// ```rust
+/// use std::os::unix::io::RawFd;
+/// use proxy_reencyption_enclave_app::protocol_helpers::send_loop;
+///
+/// fn send_message(sock_fd: RawFd, message: &[u8]) -> Result<(), String> {
+///     let len = message.len() as u64;
+///     send_loop(sock_fd, message, len)?;
+///     Ok(())
+/// }
+/// ```
+///
+/// # Performance Considerations
+/// - Uses a loop to handle partial sends efficiently
+/// - Minimizes system calls by sending as much data as possible per call
+/// - Handles signal interruptions gracefully without data loss
 pub fn send_loop(fd: RawFd, buf: &[u8], len: u64) -> Result<(), String> {
     let len: usize = len.try_into().map_err(|err| format!("{:?}", err))?;
     let mut send_bytes = 0;
@@ -37,7 +160,66 @@ pub fn send_loop(fd: RawFd, buf: &[u8], len: u64) -> Result<(), String> {
     Ok(())
 }
 
-/// Receive `len` bytes from a connection-orriented socket
+/// Receives a specified number of bytes from a connection-oriented socket into a buffer.
+///
+/// This function ensures reliable reception of data by handling partial receives
+/// and interruptions. It will continue receiving data until either the requested
+/// number of bytes have been read or an unrecoverable error occurs.
+///
+/// The function is designed to handle the common scenario where a single `recv()`
+/// call may not receive all the requested data, requiring multiple calls to
+/// complete the reception.
+///
+/// # Parameters
+/// * `fd` - The raw file descriptor of the socket to receive data from
+/// * `buf` - A mutable byte slice to store the received data
+/// * `len` - The number of bytes to receive into the buffer
+///
+/// # Returns
+/// * `Ok(())` - If all requested bytes were successfully received
+/// * `Err(String)` - If an error occurred during receiving
+///
+/// # Errors
+/// This function will return an error if:
+/// - The socket receive operation fails with a non-interrupt error
+/// - The connection is closed before all bytes are received
+/// - The buffer is too small for the requested amount of data
+/// - The length conversion to usize fails (on platforms where usize < u64)
+///
+/// # Behavior
+/// - **Partial Receives**: Handles partial receive operations by continuing to read remaining data
+/// - **Signal Handling**: Ignores `EINTR` (interrupted system call) and retries the operation
+/// - **Reliability**: Guarantees that either all requested data is received or an error is returned
+/// - **Blocking**: Will block until all data is received or an error occurs
+///
+/// # Examples
+///
+/// ```rust
+/// use std::os::unix::io::RawFd;
+/// use proxy_reencyption_enclave_app::protocol_helpers::recv_loop;
+///
+/// fn receive_message(sock_fd: RawFd) -> Result<Vec<u8>, String> {
+///     let mut buffer = vec![0u8; 1024];
+///     let message_len = 256; // Expected message length
+///
+///     recv_loop(sock_fd, &mut buffer, message_len)?;
+///
+///     // Resize buffer to actual message length
+///     buffer.truncate(message_len as usize);
+///     Ok(buffer)
+/// }
+/// ```
+///
+/// # Important Notes
+/// - The function assumes the buffer is large enough to hold `len` bytes
+/// - Data is written starting from the beginning of the buffer
+/// - The function will overwrite any existing data in the buffer
+/// - Zero bytes received typically indicates the connection was closed by the peer
+///
+/// # Performance Considerations
+/// - Uses a loop to handle partial receives efficiently
+/// - Minimizes system calls by reading as much data as possible per call
+/// - Handles signal interruptions gracefully without data loss
 pub fn recv_loop(fd: RawFd, buf: &mut [u8], len: u64) -> Result<(), String> {
     let len: usize = len.try_into().map_err(|err| format!("{:?}", err))?;
     let mut recv_bytes = 0;
