@@ -199,7 +199,7 @@ mod tests {
     #[test]
     fn test_exit_gracefully_trait_implementation() {
         // Test that the trait is implemented for Result<T, E> where E: std::fmt::Debug
-        let result: Result<i32, &str> = Ok(42);
+        let _result: Result<i32, &str> = Ok(42);
 
         // The trait is implemented automatically for all Result types where E: std::fmt::Debug
         // We can't test the actual exit behavior since std::process::exit terminates the process

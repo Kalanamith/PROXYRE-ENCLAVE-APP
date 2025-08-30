@@ -31,12 +31,10 @@ use crate::models::{
     EncryptedResponse, Keys, Payload, TransformPublicKeyCollection, TransformedBlockResponse,
     TransformedObject, TransformedObjectResponse,
 };
-use serde::{Deserialize, Serialize};
+
 use serde_json;
 
 extern crate rand;
-
-const VMADDR_CID_ANY: u32 = 0xFFFFFFFF;
 
 #[cfg(test)]
 mod tests {
@@ -165,7 +163,7 @@ mod tests {
 
     #[test]
     fn test_exit_gracefully_trait_err() {
-        let result: Result<i32, String> = Err("Test error".to_string());
+        let _result: Result<i32, String> = Err("Test error".to_string());
 
         // Since ok_or_exit calls std::process::exit(1), we can't test it directly
         // in a unit test. This would normally exit the process.
@@ -363,7 +361,7 @@ impl AsRawFd for VsockSocket {
 
 /// Initiate a connection on an AF_VSOCK socket
 #[allow(dead_code)]
-fn vsock_connect(cid: u32, port: u32) -> Result<VsockSocket, String> {
+fn vsock_connect(_cid: u32, port: u32) -> Result<VsockSocket, String> {
     let sockaddr = SockaddrIn::new(0, 0, 0, 0, port as u16); // TODO: Fix vsock
     let mut err_msg = String::new();
 
@@ -389,29 +387,7 @@ fn vsock_connect(cid: u32, port: u32) -> Result<VsockSocket, String> {
     Err(err_msg)
 }
 
-#[derive(Debug, PartialEq, Eq, Serialize, Deserialize, Clone)]
-struct EncResp {
-    public_key: String,
-    encrypted_public_key: String,
-    encrypted_private_key: String,
-    user_token: String,
-}
 
-impl EncResp {
-    fn new(
-        public_key: String,
-        encrypted_public_key: String,
-        encrypted_private_key: String,
-        user_token: String,
-    ) -> Self {
-        EncResp {
-            public_key,
-            encrypted_public_key,
-            encrypted_private_key,
-            user_token,
-        }
-    }
-}
 
 fn ppk_from_public_key(pubkey: &PublicKey) -> PPK {
     let mut ppk = PPK::new();
@@ -622,7 +598,7 @@ fn fetch_content(payload: String) -> rocket::serde::json::Json<TransformedObject
 
     let tfo_bytes = to.write_to_bytes().unwrap();
 
-    let response = EncryptedResponse {
+    let _response = EncryptedResponse {
         sender_public_key: hex::encode(&payload.initial_public_key_x),
         encrypted_resource: hex::encode(&payload.resource),
         transformed: hex::encode(&tfo_bytes),
@@ -715,7 +691,7 @@ pub fn server(args: ServerArgs) -> Result<(), String> {
         let verifying_key = signing_key.verifying_key();
 
         let ed_public_key = verifying_key.as_bytes();
-        let ed_private_key = signing_key.as_bytes();
+        let _ed_private_key = signing_key.as_bytes();
 
         let received_public_key = ecies_ed25519::PublicKey::from_bytes(&buf.as_slice()).unwrap();
 
