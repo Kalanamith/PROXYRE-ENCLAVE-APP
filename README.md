@@ -45,10 +45,6 @@ The application consists of two main components:
 
 ### System Requirements
 
-This app uses AWS Nitro Enclaves to create an environment where a client can securely request the creation of cryptographic keys inside an enclave.
-
-It enables content reencryption using Rust's recrypt library.
-
 ```bash
 # Install Rust toolchain
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustlang.org | sh
@@ -735,4 +731,3 @@ For questions, issues, or contributions:
 ---
 
 **⚠️ Security Notice**: This application handles cryptographic operations. Ensure proper key management and secure deployment practices in production environments.
-
