@@ -1,8 +1,8 @@
 # Proxy Re-encryption Enclave Application
 
-[![CI](https://github.com/your-username/proxy-reencryption-enclave-app/actions/workflows/ci.yml/badge.svg)](https://github.com/your-username/proxy-reencryption-enclave-app/actions/workflows/ci.yml)
-[![Code Quality](https://github.com/your-username/proxy-reencryption-enclave-app/actions/workflows/code-quality.yml/badge.svg)](https://github.com/your-username/proxy-reencryption-enclave-app/actions/workflows/code-quality.yml)
-[![Security Audit](https://github.com/your-username/proxy-reencryption-enclave-app/actions/workflows/scheduled.yml/badge.svg)](https://github.com/your-username/proxy-reencryption-enclave-app/actions/workflows/scheduled.yml)
+[![CI](https://github.com/personal/PROXYRE-ENCLAVE-APP/actions/workflows/ci.yml/badge.svg)](https://github.com/personal/PROXYRE-ENCLAVE-APP/actions/workflows/ci.yml)
+[![Code Quality](https://github.com/personal/PROXYRE-ENCLAVE-APP/actions/workflows/code-quality.yml/badge.svg)](https://github.com/personal/PROXYRE-ENCLAVE-APP/actions/workflows/code-quality.yml)
+[![Security Audit](https://github.com/personal/PROXYRE-ENCLAVE-APP/actions/workflows/scheduled.yml/badge.svg)](https://github.com/personal/PROXYRE-ENCLAVE-APP/actions/workflows/scheduled.yml)
 
 A secure proxy re-encryption service built in Rust that runs inside AWS Nitro Enclaves. This application provides cryptographic proxy re-encryption capabilities with a REST API interface, ensuring data privacy and security through hardware-backed trusted execution environments.
 
