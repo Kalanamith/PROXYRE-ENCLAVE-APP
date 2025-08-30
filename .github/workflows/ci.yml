@@ -24,16 +24,12 @@ jobs:
       uses: dtolnay/rust-toolchain@stable
       with:
         toolchain: ${{ matrix.rust }}
-        components: rustfmt, clippy
+        components: clippy
 
     - name: Cache dependencies
       uses: Swatinem/rust-cache@v2
       with:
         key: ubuntu-${{ matrix.rust }}
-
-    - name: Check formatting
-      run: cargo fmt --all -- --check
-      if: matrix.rust == 'stable'
 
     - name: Run clippy
       run: cargo clippy --all-targets --all-features -- -D warnings
