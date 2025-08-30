@@ -29,7 +29,7 @@ jobs:
       uses: dtolnay/rust-toolchain@master
       with:
         toolchain: ${{ matrix.rust }}
-        components: rustfmt
+        components: rustfmt, clippy
 
     - name: Cache dependencies
       uses: Swatinem/rust-cache@v2
@@ -38,11 +38,11 @@ jobs:
 
     - name: Check formatting
       run: cargo fmt --all -- --check
-      if: matrix.rust == 'stable' && matrix.os == 'ubuntu-latest'
+      if: matrix.os == 'ubuntu-latest'
 
     - name: Run clippy
       run: cargo clippy --all-targets --all-features -- -D warnings
-      if: matrix.rust == 'stable' && matrix.os == 'ubuntu-latest'
+      if: matrix.os == 'ubuntu-latest'
 
     - name: Build project
       run: cargo build --verbose
@@ -84,7 +84,6 @@ jobs:
       uses: dtolnay/rust-toolchain@master
       with:
         toolchain: 1.70.0
-        components: rustfmt
 
     - name: Cache dependencies
       uses: Swatinem/rust-cache@v2

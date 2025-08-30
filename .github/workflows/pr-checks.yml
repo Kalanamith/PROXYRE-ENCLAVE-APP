@@ -21,7 +21,7 @@ jobs:
       uses: dtolnay/rust-toolchain@master
       with:
         toolchain: stable
-        components: rustfmt
+        components: rustfmt, clippy
 
     - name: Cache dependencies
       uses: Swatinem/rust-cache@v2
@@ -85,7 +85,7 @@ jobs:
       uses: dtolnay/rust-toolchain@master
       with:
         toolchain: stable
-        components: rustfmt
+        components: rustfmt, clippy
 
     - name: Cache dependencies
       uses: Swatinem/rust-cache@v2
