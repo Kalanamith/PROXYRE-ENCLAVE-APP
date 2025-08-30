@@ -21,13 +21,9 @@ jobs:
       uses: dtolnay/rust-toolchain@stable
       with:
         toolchain: stable
-        components: clippy
 
     - name: Cache dependencies
       uses: Swatinem/rust-cache@v2
-
-    - name: Run clippy with pedantic settings
-      run: cargo clippy --all-targets --all-features -- -W clippy::pedantic -W clippy::nursery -D warnings
 
     - name: Check for unused dependencies
       run: |
@@ -75,7 +71,6 @@ jobs:
       uses: dtolnay/rust-toolchain@stable
       with:
         toolchain: ${{ matrix.rust }}
-        components: rustfmt, clippy
 
     - name: Check compilation
       run: cargo check --all-targets

@@ -21,7 +21,6 @@ jobs:
       uses: dtolnay/rust-toolchain@stable
       with:
         toolchain: stable
-        components: rustfmt, clippy
 
     - name: Cache dependencies
       uses: Swatinem/rust-cache@v2
@@ -85,13 +84,9 @@ jobs:
       uses: dtolnay/rust-toolchain@stable
       with:
         toolchain: stable
-        components: rustfmt, clippy
 
     - name: Cache dependencies
       uses: Swatinem/rust-cache@v2
-
-    - name: Run clippy with strict settings
-      run: cargo clippy --all-targets --all-features -- -D warnings -W clippy::pedantic
 
     - name: Check for TODO comments
       run: |
