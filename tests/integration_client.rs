@@ -61,4 +61,4 @@ async fn test_client_endpoints() {
     }
     // Wait for the process to exit
     let _ = child.wait();
-} 
+}

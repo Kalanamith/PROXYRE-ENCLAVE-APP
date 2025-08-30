@@ -258,7 +258,11 @@ mod tests {
             let mut buf = [0u8; 8];
             LittleEndian::write_u64(&mut buf, value);
             let read_value = LittleEndian::read_u64(&buf);
-            assert_eq!(value, read_value, "Round-trip conversion failed for value: {}", value);
+            assert_eq!(
+                value, read_value,
+                "Round-trip conversion failed for value: {}",
+                value
+            );
         }
     }
 

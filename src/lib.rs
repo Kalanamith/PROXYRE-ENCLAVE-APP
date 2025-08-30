@@ -1,25 +1,26 @@
 extern crate ed25519_dalek;
 
 pub mod command_parser;
+mod proto;
 pub mod protocol_helpers;
 pub mod utils;
-mod proto;
 use command_parser::{ClientArgs, ServerArgs};
 use protocol_helpers::{recv_loop, recv_u64, send_loop, send_u64};
 
-
-use nix::sys::socket::{accept, Backlog, bind, connect, shutdown, socket};
-use nix::sys::socket::{AddressFamily, Shutdown, SockaddrIn, SockFlag, SockType};
-use nix::unistd::close;
-use std::convert::TryInto;
-use std::os::unix::io::{AsRawFd, RawFd};
-use std::os::fd::IntoRawFd;
-use rand::RngCore;
 use ed25519_dalek::{SigningKey, VerifyingKey};
+use nix::sys::socket::{accept, bind, connect, shutdown, socket, Backlog};
+use nix::sys::socket::{AddressFamily, Shutdown, SockFlag, SockType, SockaddrIn};
+use nix::unistd::close;
+use rand::RngCore;
+use std::convert::TryInto;
+use std::os::fd::IntoRawFd;
+use std::os::unix::io::{AsRawFd, RawFd};
 
-use recrypt::api::{CryptoOps, Ed25519Ops, EncryptedValue, KeyGenOps, Plaintext, PrivateKey, PublicKey, Recrypt, TransformBlock};
-use rocket::{Config, launch, get, post, routes};
-
+use recrypt::api::{
+    CryptoOps, Ed25519Ops, EncryptedValue, KeyGenOps, Plaintext, PrivateKey, PublicKey, Recrypt,
+    TransformBlock,
+};
+use rocket::{get, launch, post, routes, Config};
 
 use proto::transform::{PublicKey as PPK, TransformBlock as TFB, TransformObject as TFO};
 use protobuf;
@@ -27,9 +28,12 @@ use protobuf::Message;
 
 mod models;
 
+use crate::models::{
+    EncryptedResponse, Keys, Payload, TransformPublicKeyCollection, TransformedBlockResponse,
+    TransformedObject, TransformedObjectResponse,
+};
+use serde::{Deserialize, Serialize};
 use serde_json;
-use serde::{Serialize, Deserialize};
-use crate::models::{EncryptedResponse, Keys, Payload, TransformedBlockResponse, TransformedObject, TransformedObjectResponse, TransformPublicKeyCollection};
 
 extern crate rand;
 
@@ -38,8 +42,8 @@ const VMADDR_CID_ANY: u32 = 0xFFFFFFFF;
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::models::*;
     use crate::command_parser::*;
+    use crate::models::*;
     use crate::utils::*;
     use clap::Command;
     use serde_json;
@@ -105,7 +109,9 @@ mod tests {
     #[test]
     fn test_parse_cid_client_valid() {
         let app = create_app!();
-        let matches = app.try_get_matches_from(vec!["test", "client", "--port", "8000", "--cid", "123"]).unwrap();
+        let matches = app
+            .try_get_matches_from(vec!["test", "client", "--port", "8000", "--cid", "123"])
+            .unwrap();
         let sub_matches = matches.subcommand_matches("client").unwrap();
 
         let client_args = ClientArgs::new_with(sub_matches).unwrap();
@@ -116,7 +122,9 @@ mod tests {
     #[test]
     fn test_parse_cid_client_invalid_cid() {
         let app = create_app!();
-        let matches = app.try_get_matches_from(vec!["test", "client", "--port", "8000", "--cid", "abc"]).unwrap();
+        let matches = app
+            .try_get_matches_from(vec!["test", "client", "--port", "8000", "--cid", "abc"])
+            .unwrap();
         let sub_matches = matches.subcommand_matches("client").unwrap();
 
         let result = ClientArgs::new_with(sub_matches);
@@ -127,7 +135,9 @@ mod tests {
     #[test]
     fn test_parse_port_server_valid() {
         let app = create_app!();
-        let matches = app.try_get_matches_from(vec!["test", "server", "--port", "5005"]).unwrap();
+        let matches = app
+            .try_get_matches_from(vec!["test", "server", "--port", "5005"])
+            .unwrap();
         let sub_matches = matches.subcommand_matches("server").unwrap();
 
         let server_args = ServerArgs::new_with(sub_matches).unwrap();
@@ -137,7 +147,9 @@ mod tests {
     #[test]
     fn test_parse_port_invalid() {
         let app = create_app!();
-        let matches = app.try_get_matches_from(vec!["test", "server", "--port", "invalid"]).unwrap();
+        let matches = app
+            .try_get_matches_from(vec!["test", "server", "--port", "invalid"])
+            .unwrap();
         let sub_matches = matches.subcommand_matches("server").unwrap();
 
         let result = ServerArgs::new_with(sub_matches);
@@ -259,7 +271,9 @@ mod tests {
         assert!(result.is_err());
 
         // Test missing cid for client
-        let result = app.clone().try_get_matches_from(vec!["test", "client", "--port", "8000"]);
+        let result = app
+            .clone()
+            .try_get_matches_from(vec!["test", "client", "--port", "8000"]);
         assert!(result.is_err());
 
         // Test missing port for client
@@ -376,7 +390,6 @@ fn vsock_connect(cid: u32, port: u32) -> Result<VsockSocket, String> {
     Err(err_msg)
 }
 
-
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize, Clone)]
 struct EncResp {
     public_key: String,
@@ -386,7 +399,12 @@ struct EncResp {
 }
 
 impl EncResp {
-    fn new(public_key: String, encrypted_public_key: String, encrypted_private_key: String, user_token:String) -> Self {
+    fn new(
+        public_key: String,
+        encrypted_public_key: String,
+        encrypted_private_key: String,
+        user_token: String,
+    ) -> Self {
         EncResp {
             public_key,
             encrypted_public_key,
@@ -488,7 +506,6 @@ fn get_root() -> &'static str {
     "\"Hola!!!\""
 }
 
-
 #[post("/upload", data = "<payload>")]
 fn upload_content(payload: String) -> &'static str {
     // TODO: figure this out
@@ -527,7 +544,7 @@ fn fetch_content(payload: String) -> rocket::serde::json::Json<TransformedObject
         &payload.delegatee_public_key_x,
         &payload.delegatee_public_key_y,
     ))
-        .unwrap();
+    .unwrap();
 
     // *********************************************************************
     let recrypt = Recrypt::new();
@@ -671,17 +688,13 @@ pub fn server(args: ServerArgs) -> Result<(), String> {
 
     bind(socket_fd, &sockaddr).map_err(|err| format!("Bind failed: {:?}", err))?;
 
-    nix::sys::socket::listen(&owned_fd, Backlog::new(BACKLOG as i32).unwrap()).map_err(|err| format!("Listen failed: {:?}", err))?;
+    nix::sys::socket::listen(&owned_fd, Backlog::new(BACKLOG as i32).unwrap())
+        .map_err(|err| format!("Listen failed: {:?}", err))?;
 
     loop {
-
         // Read Key Generation Request
 
         // Read Encryption Request
-
-
-
-
 
         let fd = accept(socket_fd).map_err(|err| format!("Accept failed: {:?}", err))?;
 
@@ -699,7 +712,7 @@ pub fn server(args: ServerArgs) -> Result<(), String> {
         let ed_public_key = verifying_key.as_bytes();
         let ed_private_key = signing_key.as_bytes();
 
-        let received_public_key =  ecies_ed25519::PublicKey::from_bytes(&buf.as_slice()).unwrap();
+        let received_public_key = ecies_ed25519::PublicKey::from_bytes(&buf.as_slice()).unwrap();
 
         // Temporarily disabled due to rand_core version conflicts
         // let encrypted_1 = ecies_ed25519::encrypt(&received_public_key, ed_public_key, &mut csprng).unwrap();
@@ -708,10 +721,22 @@ pub fn server(args: ServerArgs) -> Result<(), String> {
         let encrypted_2 = vec![0u8; 32]; // Placeholder
 
         println!("Received clients public key in bytes  {:?}", buf.clone());
-        println!("Clients Public Key  {:?}", hex::encode(&received_public_key));
+        println!(
+            "Clients Public Key  {:?}",
+            hex::encode(&received_public_key)
+        );
 
-        println!("ED25519 Generated Public Key {:?}", hex::encode(&ed_public_key));
-        println!("ED25519 Encrypted private key key with Clients Public Key {:?} ", hex::encode(&encrypted_2));
-        println!("ED25519 Encrypted public key with Clients Public Key  {:?}", hex::encode(&encrypted_1));
+        println!(
+            "ED25519 Generated Public Key {:?}",
+            hex::encode(&ed_public_key)
+        );
+        println!(
+            "ED25519 Encrypted private key key with Clients Public Key {:?} ",
+            hex::encode(&encrypted_2)
+        );
+        println!(
+            "ED25519 Encrypted public key with Clients Public Key  {:?}",
+            hex::encode(&encrypted_1)
+        );
     }
 }

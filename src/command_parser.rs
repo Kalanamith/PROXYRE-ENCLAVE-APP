@@ -29,8 +29,11 @@ impl ClientArgs {
 }
 
 fn parse_cid_client(args: &ArgMatches) -> Result<u32, String> {
-    let cid_str = args.get_one::<String>("cid").ok_or("Could not find cid argument")?;
-    cid_str.parse()
+    let cid_str = args
+        .get_one::<String>("cid")
+        .ok_or("Could not find cid argument")?;
+    cid_str
+        .parse()
         .map_err(|_err| "cid is not a number".to_string())
 }
 
@@ -38,7 +41,8 @@ fn parse_port(args: &ArgMatches) -> Result<u32, String> {
     let port_str = args
         .get_one::<String>("port")
         .ok_or("Could not find port argument")?;
-    port_str.parse()
+    port_str
+        .parse()
         .map_err(|_err| "port is not a number".to_string())
 }
 
@@ -87,46 +91,56 @@ mod tests {
     #[test]
     fn test_parse_cid_client_edge_cases() {
         // Test with valid numeric string
-        let app = Command::new("test")
-            .arg(clap::Arg::new("cid").long("cid").required(true));
+        let app = Command::new("test").arg(clap::Arg::new("cid").long("cid").required(true));
 
-        let matches = app.clone().try_get_matches_from(vec!["test", "--cid", "0"]).unwrap();
+        let matches = app
+            .clone()
+            .try_get_matches_from(vec!["test", "--cid", "0"])
+            .unwrap();
         assert_eq!(parse_cid_client(&matches).unwrap(), 0);
 
-        let matches = app.try_get_matches_from(vec!["test", "--cid", "999999"]).unwrap();
+        let matches = app
+            .try_get_matches_from(vec!["test", "--cid", "999999"])
+            .unwrap();
         assert_eq!(parse_cid_client(&matches).unwrap(), 999999);
     }
 
     #[test]
     fn test_parse_port_edge_cases() {
         // Test with valid numeric string
-        let app = Command::new("test")
-            .arg(clap::Arg::new("port").long("port").required(true));
+        let app = Command::new("test").arg(clap::Arg::new("port").long("port").required(true));
 
-        let matches = app.clone().try_get_matches_from(vec!["test", "--port", "1"]).unwrap();
+        let matches = app
+            .clone()
+            .try_get_matches_from(vec!["test", "--port", "1"])
+            .unwrap();
         assert_eq!(parse_port(&matches).unwrap(), 1);
 
-        let matches = app.try_get_matches_from(vec!["test", "--port", "65535"]).unwrap();
+        let matches = app
+            .try_get_matches_from(vec!["test", "--port", "65535"])
+            .unwrap();
         assert_eq!(parse_port(&matches).unwrap(), 65535);
     }
 
     // Test error messages
     #[test]
     fn test_parse_cid_error_message() {
-        let app = Command::new("test")
-            .arg(clap::Arg::new("cid").long("cid").required(true));
+        let app = Command::new("test").arg(clap::Arg::new("cid").long("cid").required(true));
 
-        let matches = app.try_get_matches_from(vec!["test", "--cid", "not_a_number"]).unwrap();
+        let matches = app
+            .try_get_matches_from(vec!["test", "--cid", "not_a_number"])
+            .unwrap();
         let error = parse_cid_client(&matches).unwrap_err();
         assert!(error.contains("cid is not a number"));
     }
 
     #[test]
     fn test_parse_port_error_message() {
-        let app = Command::new("test")
-            .arg(clap::Arg::new("port").long("port").required(true));
+        let app = Command::new("test").arg(clap::Arg::new("port").long("port").required(true));
 
-        let matches = app.try_get_matches_from(vec!["test", "--port", "not_a_number"]).unwrap();
+        let matches = app
+            .try_get_matches_from(vec!["test", "--port", "not_a_number"])
+            .unwrap();
         let error = parse_port(&matches).unwrap_err();
         assert!(error.contains("port is not a number"));
     }
@@ -134,8 +148,7 @@ mod tests {
     // Test missing arguments
     #[test]
     fn test_parse_cid_missing_argument() {
-        let app = Command::new("test")
-            .arg(clap::Arg::new("cid").long("cid").required(false)); // Make it optional to get matches
+        let app = Command::new("test").arg(clap::Arg::new("cid").long("cid").required(false)); // Make it optional to get matches
 
         let matches = app.try_get_matches_from(vec!["test"]).unwrap();
         let error = parse_cid_client(&matches).unwrap_err();
@@ -144,8 +157,7 @@ mod tests {
 
     #[test]
     fn test_parse_port_missing_argument() {
-        let app = Command::new("test")
-            .arg(clap::Arg::new("port").long("port").required(false)); // Make it optional to get matches
+        let app = Command::new("test").arg(clap::Arg::new("port").long("port").required(false)); // Make it optional to get matches
 
         let matches = app.try_get_matches_from(vec!["test"]).unwrap();
         let error = parse_port(&matches).unwrap_err();

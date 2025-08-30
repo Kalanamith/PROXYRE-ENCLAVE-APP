@@ -1,4 +1,4 @@
-use clap::{Command, Arg, ArgMatches};
+use clap::{Arg, ArgMatches, Command};
 
 use proxy_reencyption_enclave_app::command_parser::{ClientArgs, ServerArgs};
 use proxy_reencyption_enclave_app::create_app;
@@ -12,12 +12,16 @@ async fn main() {
 
     match args.subcommand() {
         Some(("server", sub_matches)) => {
-            let server_args = ServerArgs::new_with(sub_matches).ok_or_exit("Invalid server arguments");
+            let server_args =
+                ServerArgs::new_with(sub_matches).ok_or_exit("Invalid server arguments");
             server(server_args).ok_or_exit("Server failed to start");
         }
         Some(("client", sub_matches)) => {
-            let client_args = ClientArgs::new_with(sub_matches).ok_or_exit("Invalid client arguments");
-            client(client_args).await.ok_or_exit("Client failed to start");
+            let client_args =
+                ClientArgs::new_with(sub_matches).ok_or_exit("Invalid client arguments");
+            client(client_args)
+                .await
+                .ok_or_exit("Client failed to start");
         }
         _ => {}
     }

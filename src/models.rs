@@ -198,16 +198,24 @@ mod tests {
 
         assert_eq!(block_response.encrypted_temp_key, "temp_key");
         assert_eq!(block_response.public_key.public_key_x, "pk_x");
-        assert_eq!(block_response.random_transform_public_key.public_key_x, "rt_pk_x");
+        assert_eq!(
+            block_response.random_transform_public_key.public_key_x,
+            "rt_pk_x"
+        );
     }
 
     #[test]
     fn test_transformed_block_response_default() {
         let block_response = TransformedBlockResponse::default();
         assert!(block_response.encrypted_temp_key.is_empty());
-        assert!(block_response.encrypted_random_transform_temp_key.is_empty());
+        assert!(block_response
+            .encrypted_random_transform_temp_key
+            .is_empty());
         assert!(block_response.public_key.public_key_x.is_empty());
-        assert!(block_response.random_transform_public_key.public_key_x.is_empty());
+        assert!(block_response
+            .random_transform_public_key
+            .public_key_x
+            .is_empty());
     }
 
     // Test EncryptedResponse struct

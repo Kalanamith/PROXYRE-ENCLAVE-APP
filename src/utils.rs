@@ -43,15 +43,15 @@ pub trait ExitGracefully<T, E> {
     /// # Examples
     ///
     /// ```rust
-/// use proxy_reencyption_enclave_app::utils::ExitGracefully;
-///
-/// let result: Result<i32, &str> = Ok(42);
-/// assert_eq!(result.ok_or_exit("This won't be logged"), 42);
-///
-/// // The following would exit the program:
-/// // let result: Result<i32, &str> = Err("error");
-/// // result.ok_or_exit("Program failed"); // Exits here
-/// ```
+    /// use proxy_reencyption_enclave_app::utils::ExitGracefully;
+    ///
+    /// let result: Result<i32, &str> = Ok(42);
+    /// assert_eq!(result.ok_or_exit("This won't be logged"), 42);
+    ///
+    /// // The following would exit the program:
+    /// // let result: Result<i32, &str> = Err("error");
+    /// // result.ok_or_exit("Program failed"); // Exits here
+    /// ```
     fn ok_or_exit(self, message: &str) -> T;
 }
 
@@ -175,12 +175,7 @@ macro_rules! create_app {
                             .help("port")
                             .required(true),
                     )
-                    .arg(
-                        clap::Arg::new("cid")
-                            .long("cid")
-                            .help("cid")
-                            .required(true),
-                    ),
+                    .arg(clap::Arg::new("cid").long("cid").help("cid").required(true)),
             )
     };
 }
@@ -225,10 +220,13 @@ mod tests {
         let app = create_app!();
 
         // Test that we can get matches from valid arguments
-        let result = app.clone().try_get_matches_from(vec!["test", "server", "--port", "8080"]);
+        let result = app
+            .clone()
+            .try_get_matches_from(vec!["test", "server", "--port", "8080"]);
         assert!(result.is_ok(), "Should accept valid server arguments");
 
-        let result = app.try_get_matches_from(vec!["test", "client", "--port", "8080", "--cid", "123"]);
+        let result =
+            app.try_get_matches_from(vec!["test", "client", "--port", "8080", "--cid", "123"]);
         assert!(result.is_ok(), "Should accept valid client arguments");
     }
 
@@ -266,7 +264,10 @@ mod tests {
 
         // Both should have the same structure
         assert_eq!(app1.get_name(), app2.get_name());
-        assert_eq!(app1.get_subcommands().count(), app2.get_subcommands().count());
+        assert_eq!(
+            app1.get_subcommands().count(),
+            app2.get_subcommands().count()
+        );
     }
 
     // Test that the macro works with different argument orders
@@ -275,8 +276,11 @@ mod tests {
         let app = create_app!();
 
         // Test different argument order for client
-        let result1 = app.clone().try_get_matches_from(vec!["test", "client", "--port", "8080", "--cid", "123"]);
-        let result2 = app.try_get_matches_from(vec!["test", "client", "--cid", "123", "--port", "8080"]);
+        let result1 = app
+            .clone()
+            .try_get_matches_from(vec!["test", "client", "--port", "8080", "--cid", "123"]);
+        let result2 =
+            app.try_get_matches_from(vec!["test", "client", "--cid", "123", "--port", "8080"]);
 
         assert!(result1.is_ok());
         assert!(result2.is_ok());
